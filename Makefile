@@ -22,20 +22,20 @@ $(INTENT_JSON):
 	mkdir -p build/en-US
 	wget -nc -O $(INTENT_JSON) $(INTENT_URL)
 
-libvosklibopus:
+voskopusbuild:
 	./build-voskopus.sh
 
 go_deps:
 	echo `/usr/local/go/bin/go version` && cd $(PWD) && /usr/local/go/bin/go mod download
 
-vic-cloud: libvosklibopus go_deps
+vic-cloud: voskopusbuild go_deps
 	CGO_ENABLED=1 GOARM=7 GOARCH=arm \
 	CC=${HOME}/.anki/vicos-sdk/dist/4.0.0-r05/prebuilt/bin/arm-oe-linux-gnueabi-clang \
 	CXX=${HOME}/.anki/vicos-sdk/dist/4.0.0-r05/prebuilt/bin/arm-oe-linux-gnueabi-clang++ \
 	PKG_CONFIG_PATH="$(PWD)/voskopus/built/armel/lib/pkgconfig" \
 	CGO_CFLAGS="-Wno-implicit-function-declaration -I$(PWD)/voskopus/built/armel/include -I$(PWD)/voskopus/built/armel/include/opus" \
 	CGO_CXXFLAGS="-stdlib=libc++ -std=c++11" \
-	CGO_LDFLAGS="-L$(PWD)/voskopus/built/armel/lib -L$(PWD)/armlibs/lib/arm-linux-gnueabi/android" \
+	CGO_LDFLAGS="-L$(PWD)/voskopus/built/armel/lib -L$(PWD)/armlibs/lib/arm-linux-gnueabi/android -lpthread" \
 	/usr/local/go/bin/go build \
 	-tags nolibopusfile,vicos \
 	-ldflags '-w -s -linkmode internal -extldflags "-static" -r /anki/lib' \

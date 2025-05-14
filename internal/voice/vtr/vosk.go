@@ -24,21 +24,17 @@ func InitVosk() {
 	}
 	// does this actually do anything
 	rec.SetMaxAlternatives(0)
-	rec.SetPartialWords(0)
-	rec.SetWords(0)
 	rec.SetEndpointerDelays(3, 0, 0)
 }
 
 func Process(chunk []byte) string {
 	if len(chunk) == 0 {
-		fmt.Println("empty ahh chunk")
+		fmt.Println("empty chunk")
 		return ""
 	}
 	// todo: experiment with giving acceptwaveform smaller or bigger chunks
-	stop, isActive := DetectEndOfSpeech(chunk)
-	if isActive {
-		rec.AcceptWaveform(chunk)
-	}
+	stop, _ := DetectEndOfSpeech(chunk)
+	rec.AcceptWaveform(chunk)
 	if stop {
 		var jres map[string]interface{}
 		json.Unmarshal([]byte(rec.FinalResult()), &jres)

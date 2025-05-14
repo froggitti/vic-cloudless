@@ -21,7 +21,6 @@ function prepareVOSKbuild_ARMARM64() {
         exit 1
     fi
     mkdir -p build/${ARCH}
-    mkdir -p built/${ARCH}
     KALDIROOT="$(pwd)/build/${ARCH}/kaldi"
     BPREFIX="$(pwd)/built/${ARCH}"
     cd build/${ARCH}
@@ -31,10 +30,10 @@ function prepareVOSKbuild_ARMARM64() {
         cd kaldi/tools
         git clone -b v0.3.20 --single-branch https://github.com/xianyi/OpenBLAS
         git clone -b v3.2.1  --single-branch https://github.com/alphacep/clapack
-	sed -i 's/-mfloat-abi=hard -mfpu=neon/-mfloat-abi=softfp -mfpu=neon-vfpv4/g' ${KALDIROOT}/src/makefiles/*.mk
+	    sed -i 's/-mfloat-abi=hard -mfpu=neon/-mfloat-abi=softfp -mfpu=neon-vfpv4/g' ${KALDIROOT}/src/makefiles/*.mk
         echo ${OPENBLAS_ARGS}
-        make -C OpenBLAS ONLY_CBLAS=1 TARGET=ARMV7 ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 ARM_SOFTFP_ABI=1 USE_THREAD=1 NUM_THREADS=4 -j 12
-        make -C OpenBLAS ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 USE_THREAD=1 PREFIX=$(pwd)/OpenBLAS/install install
+        make -C OpenBLAS ONLY_CBLAS=1 TARGET=ARMV7 ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 ARM_SOFTFP_ABI=1 USE_THREAD=0 NUM_THREADS=2 -j 12
+        make -C OpenBLAS ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 USE_THREAD=0 PREFIX=$(pwd)/OpenBLAS/install install
         rm -rf clapack/BUILD
         mkdir -p clapack/BUILD && cd clapack/BUILD
         /home/kerigan/.anki/cmake/dist/3.9.6/bin/cmake -DCMAKE_C_FLAGS="$ARCHFLAGS" -DCMAKE_C_COMPILER_TARGET=$PODHOST \
@@ -97,7 +96,7 @@ function doVOSKbuild() {
             cd ..
         fi
         cd vosk-api/src
-        KALDI_ROOT=$KALDIROOT make EXTRA_LDFLAGS="-static-libstdc++" -j8
+        KALDI_ROOT=$KALDIROOT make EXTRA_LDFLAGS="-static-libstdc++ -lpthread" -j8
 	cd "${ORIGPATH}/build/${ARCH}"
         mkdir -p "${BPREFIX}/lib"
         mkdir -p "${BPREFIX}/include"
@@ -137,7 +136,7 @@ function buildOPUS() {
 
 
 arch=armel
-if [[ ! -f ${ORIGPATH}/built/$ARCH/lib/libvosk.so ]]; then
+if [[ ! -f "${ORIGPATH}/built/$arch/lib/libvosk.so" ]]; then
     echo "Compiling VOSK dependencies for $arch"
     prepareVOSKbuild_ARMARM64 "$arch"
     doVOSKbuild "$arch"
