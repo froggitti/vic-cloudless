@@ -22,7 +22,7 @@ import (
 	"github.com/digital-dream-labs/vector-cloud/internal/robot"
 	"github.com/digital-dream-labs/vector-cloud/internal/token"
 	"github.com/digital-dream-labs/vector-cloud/internal/voice"
-	"github.com/digital-dream-labs/vector-cloud/internal/voice/stream"
+	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 
 	"github.com/gwatts/rootcerts"
 )
@@ -78,7 +78,7 @@ func main() {
 
 	log.Println("Starting up")
 	fmt.Println("loading vosk...")
-	stream.InitVosk()
+	vtr.InitVosk()
 	fmt.Println("worked maybe")
 
 	robot.InstallCrashReporter(log.Tag)
