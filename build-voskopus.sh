@@ -140,9 +140,12 @@ arch=armel
 if [[ ! -f ${ORIGPATH}/built/$ARCH/lib/libvosk.so ]]; then
     echo "Compiling VOSK dependencies for $arch"
     prepareVOSKbuild_ARMARM64 "$arch"
+    doVOSKbuild "$arch"
 fi
-#    echo "Building VOSK for $arch (if needed)"
-doVOSKbuild "$arch"
-#    echo "Building OPUS for $arch (if needed)"
 buildOPUS "$arch"
+
+cd "${ORIGPATH}"
+cp -r built/armel/lib/libopus.so.0.10.1 ../build/libopus.so.0
+cp -r built/armel/lib/libvosk.so ../build/
+
 echo "Dependencies complete for $arch."

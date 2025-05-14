@@ -14,7 +14,7 @@ var rec *vosk.VoskRecognizer
 func InitVosk() {
 	loadIntents()
 	var err error
-	model, err = vosk.NewModel("/anki/data/assets/cozmo_resources/cloudless/models/en-US")
+	model, err = vosk.NewModel("/anki/data/assets/cozmo_resources/cloudless/en-US/model")
 	if err != nil {
 		log.Fatal("model not found", err)
 	}
