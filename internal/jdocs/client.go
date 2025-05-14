@@ -2,7 +2,9 @@ package jdocs
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
+	"sync"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/clad/cloud"
 
@@ -17,21 +19,30 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+var Added bool
+
 type conn struct {
 	conn   *grpc.ClientConn
 	client pb.JdocsClient
 	tok    token.Accessor
 }
 
+var certPoolOnce sync.Once
+var certPool *x509.CertPool
+
+func getCertPool() *x509.CertPool {
+	certPoolOnce.Do(func() {
+		certPool = rootcerts.ServerCertPool()
+		certPool.AppendCertsFromPEM([]byte(escapepodRootPEM))
+	})
+	return certPool
+}
+
 func newConn(ctx context.Context, opts *options) (*conn, error) {
-
-	pool := rootcerts.ServerCertPool()
-
-	_ = pool.AppendCertsFromPEM([]byte(escapepodRootPEM))
 
 	dialOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(
-			credentials.NewClientTLSFromCert(pool, ""),
+			credentials.NewClientTLSFromCert(getCertPool(), ""),
 		),
 	}
 

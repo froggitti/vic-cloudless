@@ -1,60 +1,81 @@
-package stream
+package vtr
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func GetJdoc() {
-
+type AJdoc struct {
+	DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
+	FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
+	ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
+	JsonDoc        string `protobuf:"bytes,4,opt,name=json_doc,json=jsonDoc,proto3" json:"json_doc,omitempty"`
 }
 
+func GetJdoc() (AJdoc, bool) {
+	file, err := os.ReadFile("/data/data/com.anki.victor/persistent/jdocs/vic.RobotSettings.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var j AJdoc
+	err = json.Unmarshal(file, &j)
+	if err != nil {
+		fmt.Println("error")
+		return j, false
+	}
+	return j, true
+}
+
+// FUCK this STUpid fucking function
+// do better, kerigan
 func ParamChecker(intent string, speechText string, botSerial string) (string, map[string]string, bool) {
 	var intentParam string
 	var intentParamValue string
 	var newIntent string
 	var isParam bool
 	var intentParams map[string]string
-	// var botLocation string = "San Francisco"
-	// var botUnits string = "F"
+	var botLocation string = "San Francisco"
+	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
 
-	// see if jdoc exists
-	// botJdoc, jdocExists := vars.GetJdoc("vic:"+botSerial, "vic.RobotSettings")
-	// if jdocExists {
-	// 	type robotSettingsJson struct {
-	// 		ButtonWakeword int  `json:"button_wakeword"`
-	// 		Clock24Hour    bool `json:"clock_24_hour"`
-	// 		CustomEyeColor struct {
-	// 			Enabled    bool    `json:"enabled"`
-	// 			Hue        float64 `json:"hue"`
-	// 			Saturation float64 `json:"saturation"`
-	// 		} `json:"custom_eye_color"`
-	// 		DefaultLocation  string `json:"default_location"`
-	// 		DistIsMetric     bool   `json:"dist_is_metric"`
-	// 		EyeColor         int    `json:"eye_color"`
-	// 		Locale           string `json:"locale"`
-	// 		MasterVolume     int    `json:"master_volume"`
-	// 		TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
-	// 		TimeZone         string `json:"time_zone"`
-	// 	}
-	// 	var robotSettings robotSettingsJson
-	// 	err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
-	// 	if err != nil {
-	// 		logger.Println("Error unmarshaling json in paramchecker")
-	// 		logger.Println(err)
-	// 	} else {
-	// 		botLocation = robotSettings.DefaultLocation
-	// 		if robotSettings.TempIsFahrenheit {
-	// 			botUnits = "F"
-	// 		} else {
-	// 			botUnits = "C"
-	// 		}
-	// 	}
-	// }
+	botJdoc, jdocExists := GetJdoc()
+	if jdocExists {
+		type robotSettingsJson struct {
+			ButtonWakeword int  `json:"button_wakeword"`
+			Clock24Hour    bool `json:"clock_24_hour"`
+			CustomEyeColor struct {
+				Enabled    bool    `json:"enabled"`
+				Hue        float64 `json:"hue"`
+				Saturation float64 `json:"saturation"`
+			} `json:"custom_eye_color"`
+			DefaultLocation  string `json:"default_location"`
+			DistIsMetric     bool   `json:"dist_is_metric"`
+			EyeColor         int    `json:"eye_color"`
+			Locale           string `json:"locale"`
+			MasterVolume     int    `json:"master_volume"`
+			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
+			TimeZone         string `json:"time_zone"`
+		}
+		var robotSettings robotSettingsJson
+		err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
+		if err != nil {
+			fmt.Println("Error unmarshaling json in paramchecker")
+			fmt.Println(err)
+		} else {
+			botLocation = robotSettings.DefaultLocation
+			if robotSettings.TempIsFahrenheit {
+				botUnits = "F"
+			} else {
+				botUnits = "C"
+			}
+		}
+	}
 	if botPlaySpecific {
 		if strings.Contains(intent, "intent_play_blackjack") {
 			isParam = true
@@ -134,17 +155,24 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 			isParam = false
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
-		// }
-		// else if strings.Contains(intent, "intent_weather_extend") {
-		// 	isParam = true
-		// 	newIntent = intent
-		// 	condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := weatherParser(speechText, botLocation, botUnits)
-		// 	if local_datetime == "test" {
-		// 		newIntent = "intent_system_unmatched"
-		// 		isParam = false
-		// 	} else {
-		// 		intentParams = map[string]string{"condition": condition, "is_forecast": is_forecast, "local_datetime": local_datetime, "speakable_location_string": speakable_location_string, "temperature": temperature, "temperature_unit": temperature_unit}
-		// 	}
+	} else if strings.Contains(intent, "intent_weather_extend") {
+		isParam = true
+		newIntent = intent
+		var finalTemp string
+		//condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(botLocation)
+		tempC, tempF, condition, err := getWeather(botLocation)
+		if botUnits == "C" {
+			finalTemp = tempC
+		} else {
+			finalTemp = tempF
+		}
+		if err != nil {
+			fmt.Println("WEATHER ERROR:", err)
+			newIntent = "intent_system_unmatched"
+			isParam = false
+		} else {
+			intentParams = map[string]string{"condition": string(condition), "is_forecast": "false", "local_datetime": "test", "speakable_location_string": botLocation, "temperature": finalTemp, "temperature_unit": botUnits}
+		}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent
@@ -172,6 +200,7 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 			intentParamValue = "VOLUME_1"
 		}
 		intentParams = map[string]string{intentParam: intentParamValue}
+		// "my name is" is not possible anymore :/
 		//}
 		//else if strings.Contains(intent, "intent_names_username_extend") {
 		// if !vars.VoskGrammerEnable {

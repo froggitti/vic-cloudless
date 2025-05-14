@@ -1,10 +1,12 @@
 package stream
 
 import (
-	"strings"
-
 	chippergrpc2 "github.com/digital-dream-labs/api/go/chipperpb"
+	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 )
+
+// WIRE: main entrypoint for a request!
+// we are keeping the OG code commented in case we want to make some sort of hybrid solution
 
 func (strm *Streamer) init(streamSize int) {
 	// set up error response if context times out/is canceled
@@ -40,9 +42,9 @@ func (strm *Streamer) init(streamSize int) {
 
 	go func() {
 		for data := range strm.audioStream {
-			text := Process(data)
+			text := vtr.Process(data)
 			if text != "" {
-				intent, iParam, _ := ProcessTextAll(text, IntentList)
+				intent, iParam, _ := vtr.ProcessTextAll(text, vtr.IntentList)
 				sendIntentGraphResponse(&chippergrpc2.IntentGraphResponse{
 					ResponseType: chippergrpc2.IntentGraphMode_INTENT,
 					IsFinal:      true,
@@ -55,33 +57,4 @@ func (strm *Streamer) init(streamSize int) {
 			}
 		}
 	}()
-}
-
-func ProcessTextAll(voiceText string, intents []JsonIntent) (string, map[string]string, bool) {
-	var botSerial string
-	var intentNum int = 0
-	var successMatched bool = false
-	voiceText = strings.ToLower(voiceText)
-	// Look for a perfect match first
-	for _, b := range intents {
-		for _, c := range b.Keyphrases {
-			if voiceText == strings.ToLower(c) {
-				return ParamChecker(b.Name, voiceText, botSerial)
-			}
-		}
-		intentNum = intentNum + 1
-	}
-	// Not found? Then let's be happy with a bare substring search
-	if !successMatched {
-		intentNum = 0
-		for _, b := range intents {
-			for _, c := range b.Keyphrases {
-				if strings.Contains(voiceText, strings.ToLower(c)) && !b.RequireExactMatch {
-					return ParamChecker(b.Name, voiceText, botSerial)
-				}
-			}
-			intentNum = intentNum + 1
-		}
-	}
-	return "intent_system_noaudio", map[string]string{}, false
 }
