@@ -1,34 +1,35 @@
 package vtr
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-type AJdoc struct {
-	DocVersion     uint64 `protobuf:"varint,1,opt,name=doc_version,json=docVersion,proto3" json:"doc_version,omitempty"`            // first version = 1; 0 => invalid or doesn't exist
-	FmtVersion     uint64 `protobuf:"varint,2,opt,name=fmt_version,json=fmtVersion,proto3" json:"fmt_version,omitempty"`            // first version = 1; 0 => invalid
-	ClientMetadata string `protobuf:"bytes,3,opt,name=client_metadata,json=clientMetadata,proto3" json:"client_metadata,omitempty"` // arbitrary client-defined string, eg a data fingerprint (typ "", 32 chars max)
-	JsonDoc        string `protobuf:"bytes,4,opt,name=json_doc,json=jsonDoc,proto3" json:"json_doc,omitempty"`
-}
-
-func GetJdoc() (AJdoc, bool) {
-	file, err := os.ReadFile("/data/data/com.anki.victor/persistent/jdocs/vic.RobotSettings.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	var j AJdoc
-	err = json.Unmarshal(file, &j)
-	if err != nil {
-		fmt.Println("error")
-		return j, false
-	}
-	return j, true
+type SettingsJdoc struct {
+	ClientMetadata         string `json:"client_metadata"`
+	CloudAccessed          bool   `json:"cloud_accessed"`
+	CloudDirtyRemainingSec int    `json:"cloud_dirty_remaining_sec"`
+	CloudGetTime           int    `json:"cloud_get_time"`
+	DocVersion             int    `json:"doc_version"`
+	FmtVersion             int    `json:"fmt_version"`
+	Jdoc                   struct {
+		ButtonWakeword int  `json:"button_wakeword"`
+		Clock24Hour    bool `json:"clock_24_hour"`
+		CustomEyeColor struct {
+			Enabled    bool `json:"enabled"`
+			Hue        int  `json:"hue"`
+			Saturation int  `json:"saturation"`
+		} `json:"custom_eye_color"`
+		DefaultLocation  string `json:"default_location"`
+		DistIsMetric     bool   `json:"dist_is_metric"`
+		EyeColor         int    `json:"eye_color"`
+		Locale           string `json:"locale"`
+		MasterVolume     int    `json:"master_volume"`
+		TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
+		TimeZone         string `json:"time_zone"`
+	} `json:"jdoc"`
 }
 
 // FUCK this STUpid fucking function
@@ -39,43 +40,9 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 	var newIntent string
 	var isParam bool
 	var intentParams map[string]string
-	var botLocation string = "San Francisco"
-	var botUnits string = "F"
 	var botPlaySpecific bool = false
 	var botIsEarlyOpus bool = false
 
-	botJdoc, jdocExists := GetJdoc()
-	if jdocExists {
-		type robotSettingsJson struct {
-			ButtonWakeword int  `json:"button_wakeword"`
-			Clock24Hour    bool `json:"clock_24_hour"`
-			CustomEyeColor struct {
-				Enabled    bool    `json:"enabled"`
-				Hue        float64 `json:"hue"`
-				Saturation float64 `json:"saturation"`
-			} `json:"custom_eye_color"`
-			DefaultLocation  string `json:"default_location"`
-			DistIsMetric     bool   `json:"dist_is_metric"`
-			EyeColor         int    `json:"eye_color"`
-			Locale           string `json:"locale"`
-			MasterVolume     int    `json:"master_volume"`
-			TempIsFahrenheit bool   `json:"temp_is_fahrenheit"`
-			TimeZone         string `json:"time_zone"`
-		}
-		var robotSettings robotSettingsJson
-		err := json.Unmarshal([]byte(botJdoc.JsonDoc), &robotSettings)
-		if err != nil {
-			fmt.Println("Error unmarshaling json in paramchecker")
-			fmt.Println(err)
-		} else {
-			botLocation = robotSettings.DefaultLocation
-			if robotSettings.TempIsFahrenheit {
-				botUnits = "F"
-			} else {
-				botUnits = "C"
-			}
-		}
-	}
 	if botPlaySpecific {
 		if strings.Contains(intent, "intent_play_blackjack") {
 			isParam = true
@@ -158,21 +125,8 @@ func ParamChecker(intent string, speechText string, botSerial string) (string, m
 	} else if strings.Contains(intent, "intent_weather_extend") {
 		isParam = true
 		newIntent = intent
-		var finalTemp string
 		//condition, is_forecast, local_datetime, speakable_location_string, temperature, temperature_unit := getWeather(botLocation)
-		tempC, tempF, condition, err := getWeather(botLocation)
-		if botUnits == "C" {
-			finalTemp = tempC
-		} else {
-			finalTemp = tempF
-		}
-		if err != nil {
-			fmt.Println("WEATHER ERROR:", err)
-			newIntent = "intent_system_unmatched"
-			isParam = false
-		} else {
-			intentParams = map[string]string{"condition": string(condition), "is_forecast": "false", "local_datetime": "test", "speakable_location_string": botLocation, "temperature": finalTemp, "temperature_unit": botUnits}
-		}
+		intentParams = map[string]string{"condition": string(currentCondition), "is_forecast": "false", "local_datetime": "test", "speakable_location_string": currentLocation, "temperature": currentTemp, "temperature_unit": currentUnits}
 	} else if strings.Contains(intent, "intent_imperative_volumelevel_extend") {
 		isParam = true
 		newIntent = intent

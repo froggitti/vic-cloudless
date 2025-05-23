@@ -1,7 +1,9 @@
 #.PHONY: en-US voskopus vic-cloud vic-gateway
 
-MODEL_ZIP = vosk-model-small-en-us-zamia-0.5.zip
-MODEL_URL = https://alphacephei.com/vosk/models/$(MODEL_ZIP)
+#https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+
+MODEL_ZIP = vosk-model-small-en-us-0.15.zip
+MODEL_URL = https://github.com/kercre123/vosk-models/raw/refs/heads/main/$(MODEL_ZIP)
 MODEL_DIR = build/en-US/model
 MODEL_UNZIPPED = build/en-US/model/.unzipped
 
@@ -13,8 +15,8 @@ all: $(MODEL_UNZIPPED) $(INTENT_JSON) vic-cloud vic-gateway
 $(MODEL_UNZIPPED):
 	mkdir -p build/en-US
 	wget -nc $(MODEL_URL)
-	unzip -n $(MODEL_ZIP)
-	mv -n vosk-model-small-en-us-zamia-0.5 $(MODEL_DIR)
+	unzip vosk-model-small-en-us-0.15.zip
+	mv -n vosk-model-small-en-us-0.15 $(MODEL_DIR)
 	rm -f $(MODEL_ZIP)
 	touch $(MODEL_UNZIPPED)
 

@@ -79,6 +79,7 @@ func main() {
 	log.Println("Starting up")
 	fmt.Println("loading vosk...")
 	vtr.InitVosk()
+	go vtr.WeatherFetcher()
 	fmt.Println("worked maybe")
 
 	robot.InstallCrashReporter(log.Tag)

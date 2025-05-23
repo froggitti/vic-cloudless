@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/clad/cloud"
+	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 
 	"github.com/digital-dream-labs/vector-cloud/internal/config"
 	"github.com/digital-dream-labs/vector-cloud/internal/log"
@@ -94,6 +96,10 @@ var connectErrorResponse = cloud.NewDocResponseWithErr(&cloud.ErrorResponse{Err:
 
 func (c *conn) writeRequest(ctx context.Context, cladReq *cloud.WriteRequest) (*cloud.DocResponse, error) {
 	req := (*cladWriteReq)(cladReq).toProto()
+	if strings.Contains(req.DocName, "RobotSettings") {
+		log.Println("getting location because of RobotSettings jdocs update")
+		go vtr.FetchWeatherNow(true)
+	}
 	resp, err := c.client.WriteDoc(ctx, req)
 	if err != nil {
 		return connectErrorResponse, err

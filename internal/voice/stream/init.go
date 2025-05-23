@@ -1,6 +1,8 @@
 package stream
 
 import (
+	"strconv"
+
 	chippergrpc2 "github.com/digital-dream-labs/api/go/chipperpb"
 	"github.com/digital-dream-labs/vector-cloud/internal/voice/vtr"
 )
@@ -41,6 +43,15 @@ func (strm *Streamer) init(streamSize int) {
 	// }()
 
 	go func() {
+		curFreq := vtr.GetFreq()
+		var underClockAfter bool
+		o, err := strconv.Atoi(curFreq)
+		if err == nil {
+			if o <= 1267200 {
+				underClockAfter = true
+				vtr.SetFreq("1267200", "800000")
+			}
+		}
 		for data := range strm.audioStream {
 			text := vtr.Process(data)
 			if text != "" {
@@ -53,6 +64,9 @@ func (strm *Streamer) init(streamSize int) {
 						Parameters: iParam,
 					},
 				}, strm.receiver)
+				if underClockAfter {
+					vtr.SetFreq(curFreq, "600000")
+				}
 				return
 			}
 		}

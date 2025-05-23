@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
+	"strings"
 
 	vosk "github.com/os-vector/vosk-api/go"
 )
@@ -19,6 +22,7 @@ func InitVosk() {
 		log.Fatal("model not found", err)
 	}
 	rec, err = vosk.NewRecognizerGrm(model, 16000, GetGrammerList("en-US"))
+	//rec, err = vosk.NewRecognizer(model, 16000)
 	if err != nil {
 		log.Fatal("error making rec:", err)
 	}
@@ -43,4 +47,16 @@ func Process(chunk []byte) string {
 		return transcribedText
 	}
 	return ""
+}
+
+func GetFreq() string {
+	file, err := os.ReadFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq")
+	if err == nil {
+		return strings.TrimSpace(string(file))
+	}
+	return "533333"
+}
+
+func SetFreq(cpu, ram string) {
+	go exec.Command("/usr/bin/sudo", "/usr/sbin/setfreq", cpu, ram).Run()
 }

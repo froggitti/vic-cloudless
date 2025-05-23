@@ -5,11 +5,12 @@ cd voskopus
 
 ORIGPATH="$(pwd)"
 
-ARMT="$(pwd)/vic-toolchain/arm-linux-gnueabi/bin/arm-linux-gnueabi-"
+#ARMT="$(pwd)/vic-toolchain/arm-linux-gnueabi/bin/arm-linux-gnueabi-"
+ARMT="$HOME/.anki/vicos-sdk/dist/4.0.0-r05/prebuilt/bin/arm-oe-linux-gnueabi-"
 
-if [[ ! -f vic-toolchain ]]; then
-    git clone https://github.com/kercre123/vic-toolchain --depth=1
-fi
+#if [[ ! -f vic-toolchain ]]; then
+#    git clone https://github.com/kercre123/vic-toolchain --depth=1
+#fi
 
 set -e
 
@@ -32,8 +33,8 @@ function prepareVOSKbuild_ARMARM64() {
         git clone -b v3.2.1  --single-branch https://github.com/alphacep/clapack
 	    sed -i 's/-mfloat-abi=hard -mfpu=neon/-mfloat-abi=softfp -mfpu=neon-vfpv4/g' ${KALDIROOT}/src/makefiles/*.mk
         echo ${OPENBLAS_ARGS}
-        make -C OpenBLAS ONLY_CBLAS=1 TARGET=ARMV7 ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 ARM_SOFTFP_ABI=1 USE_THREAD=0 NUM_THREADS=2 -j 12
-        make -C OpenBLAS ${OPENBLAS_ARGS} HOSTCC=gcc USE_LOCKING=1 USE_THREAD=0 PREFIX=$(pwd)/OpenBLAS/install install
+        make -C OpenBLAS ONLY_CBLAS=1 TARGET=ARMV7 ${OPENBLAS_ARGS} HOSTCC="gcc -Wno-error" USE_LOCKING=1 ARM_SOFTFP_ABI=1 USE_THREAD=0 NUM_THREADS=2 -j 12
+        make -C OpenBLAS ${OPENBLAS_ARGS} HOSTCC="gcc -Wno-error" USE_LOCKING=1 USE_THREAD=0 PREFIX=$(pwd)/OpenBLAS/install install
         rm -rf clapack/BUILD
         mkdir -p clapack/BUILD && cd clapack/BUILD
         /home/kerigan/.anki/cmake/dist/3.9.6/bin/cmake -DCMAKE_C_FLAGS="$ARCHFLAGS" -DCMAKE_C_COMPILER_TARGET=$PODHOST \
@@ -64,14 +65,16 @@ function prepareVOSKbuild_ARMARM64() {
 }
 
 function expToolchain() {
-    export CC=${ARMT}gcc
-    export CXX=${ARMT}g++
+    export CC="${ARMT}clang -Wno-error -Wno-implicit-function-declaration"
+    export CXX="${ARMT}clang++ -Wno-error -Wno-implicit-function-declaration"
+    export CPP="${ARMT}clang -E"
+#    export CFLAGS="-Wno-error"
+#    export CXXFLAGS="-Wno-error"
     export LD=${ARMT}ld
     export AR=${ARMT}ar
-    export FC=${ARMT}gfortran
+    #export FC=${ARMT}gfortran
     export RANLIB=${ARMT}ranlib
     export AS=${ARMT}as
-    export CPP=${ARMT}cpp
     export PODHOST=arm-oe-linux-gnueabi
     export CROSS_TRIPLE=${PODHOST}
     export CROSS_COMPILE=${ARMT}
@@ -96,7 +99,7 @@ function doVOSKbuild() {
             cd ..
         fi
         cd vosk-api/src
-        KALDI_ROOT=$KALDIROOT make EXTRA_LDFLAGS="-static-libstdc++ -lpthread" -j8
+        KALDI_ROOT=$KALDIROOT make EXTRA_LDFLAGS=" -lpthread -Wl,-Bstatic -lc++ -Wl,-Bdynamic -lpthread -ldl -lm" -j8
 	cd "${ORIGPATH}/build/${ARCH}"
         mkdir -p "${BPREFIX}/lib"
         mkdir -p "${BPREFIX}/include"
