@@ -37,9 +37,9 @@ function prepareVOSKbuild_ARMARM64() {
         make -C OpenBLAS ${OPENBLAS_ARGS} HOSTCC="gcc -Wno-error" USE_LOCKING=1 USE_THREAD=0 PREFIX=$(pwd)/OpenBLAS/install install
         rm -rf clapack/BUILD
         mkdir -p clapack/BUILD && cd clapack/BUILD
-        /home/kerigan/.anki/cmake/dist/3.9.6/bin/cmake -DCMAKE_C_FLAGS="$ARCHFLAGS" -DCMAKE_C_COMPILER_TARGET=$PODHOST \
+        cmake -DCMAKE_C_FLAGS="$ARCHFLAGS" -DCMAKE_C_COMPILER_TARGET=$PODHOST \
             -DCMAKE_C_COMPILER=$CC -DCMAKE_SYSTEM_NAME=Generic -DCMAKE_AR=$AR \
-            -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
+            -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
             -DCMAKE_CROSSCOMPILING=True ..
         make HOSTCC=gcc -j 12 -C F2CLIBS/libf2c
         make  HOSTCC=gcc -j 12 -C BLAS/SRC
