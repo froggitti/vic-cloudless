@@ -44,6 +44,7 @@ func Process(chunk []byte) string {
 		json.Unmarshal([]byte(rec.FinalResult()), &jres)
 		transcribedText := jres["text"].(string)
 		fmt.Println("transcribed text: " + transcribedText)
+		go rec.Reset()
 		return transcribedText
 	}
 	return ""
