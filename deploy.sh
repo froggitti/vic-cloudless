@@ -27,6 +27,6 @@ scp -O rsync/rsync root@$1:/usr/bin/rsync
 ssh root@$1 "chmod +x /usr/bin/rsync"
 scp -O rsync/rsyncd.conf root@$1:/run/systemd/system/rsyncd.conf
 scp -O rsync/rsyncd.service root@$1:/lib/systemd/system/rsyncd.service
-ssh root@$1 "systemctl enable rsyncd"
+#ssh root@$1 "systemctl enable rsyncd"
 rsync -avr build/en-US root@$1:/anki/data/assets/cozmo_resources/cloudless/
 ssh root@$1 "chmod +rwx /usr/sbin/setfreq && systemctl daemon-reload && sudo -k && systemctl start anki-robot.target"
