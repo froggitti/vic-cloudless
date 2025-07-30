@@ -2,9 +2,15 @@
 
 Vector processing text all by himself.
 
-# Build
+# Get deps
 
-Make sure you have the 4.0.0-r05 toolchain installed in ~/.anki/vicos-sdk/dist. Also have cmake, make automake, git, and wget.
+Make sure you have the 5.2.1-r06 toolchain installed in ~/.anki/vicos-sdk/dist. Also have cmake, make automake, git, and wget. The `get-deps.sh` script will do this for you.
+
+```
+./get-deps.sh
+```
+
+# Build
 
 (this can only build on Linux)
 
