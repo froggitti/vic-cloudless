@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [[ ! -f ~/.anki/vicos-sdk/dist/5.2.1-r06 ]]; then
+if [[ ! -d ~/.anki/vicos-sdk/dist/5.2.1-r06 ]]; then
   echo Getting deps...
   mkdir ~/.anki/vicos-sdk/dist/5.2.1-r06
   cd ~/.anki/vicos-sdk/dist/5.2.1-r06
