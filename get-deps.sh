@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
-if [[ ! -d ~/.anki/vicos-sdk/dist/1.1.0-r04 ]]; then
+if [[ ! -d ~/.anki/vicos-sdk/dist/vic-toolchain ]]; then
   echo Getting deps...
-  mkdir ~/.anki/vicos-sdk/dist/1.1.0-r04
-  cd ~/.anki/vicos-sdk/dist/1.1.0-r04
-  wget https://github.com/kercre123/anki-deps/releases/download/1.1.0-r04/vicos-sdk-1.1.0-r04-x86_64-ubuntu-16.04.tar.gz
-  gunzip vicos-sdk-1.1.0-r04-x86_64-ubuntu-16.04.tar.gz
-  tar -xvf vicos-sdk-1.1.0-r04-x86_64-ubuntu-16.04.tar
+  cd ~/.anki/vicos-sdk/dist/ 
+  git clone https://github.com/kercre123/vic-toolchain
 else
-  echo You already have the 1.1.0-r04 toolchain installed. Exiting...
+  echo You already have vic-toolchain installed. Exiting...
   exit
 fi
