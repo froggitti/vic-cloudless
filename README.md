@@ -4,7 +4,7 @@ Vector processing text all by himself.
 
 # Get deps
 
-Make sure you have the 5.2.1-r06 toolchain installed in ~/.anki/vicos-sdk/dist. **Also have cmake, make automake, git, and wget.**
+**Install gcc, g++, cmake, make, automake, git, and wget.** After you do that, run this script to install the 5.2.1-r06 toolchain if you don't have it already:
 
 ```
 ./get-deps.sh
