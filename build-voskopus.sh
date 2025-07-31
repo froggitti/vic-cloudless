@@ -47,10 +47,11 @@ function prepareVOSKbuild_ARMARM64() {
         find . -name "*.a" | xargs cp -t ../../OpenBLAS/install/lib
         cd ${KALDIROOT}/tools
         git clone --single-branch https://github.com/alphacep/openfst openfst
+	#make openfst
         cd openfst
         autoreconf -i
-        CFLAGS="-g -O3" ./configure --prefix=${KALDIROOT}/tools/openfst --enable-static --enable-shared --enable-far --enable-ngram-fsts --enable-lookahead-fsts --with-pic --disable-bin --host=${CROSS_TRIPLE} --build=x86-linux-gnu
-        make -j 12 && make install
+       CFLAGS="-g -O3" ./configure --prefix=${KALDIROOT}/tools/openfst --enable-static --enable-shared --enable-far --enable-ngram-fsts --enable-lookahead-fsts --with-pic --disable-bin --host=${CROSS_TRIPLE} --build=x86-linux-gnu
+       make -j 12 && make install
         cd ${KALDIROOT}/src
         sed -i "s:TARGET_ARCH=\"\`uname -m\`\":TARGET_ARCH=$(echo $CROSS_TRIPLE|cut -d - -f 1):g" configure
         sed -i "s: -O1 : -O3 :g" makefiles/linux_openblas_arm.mk
@@ -65,9 +66,9 @@ function prepareVOSKbuild_ARMARM64() {
 }
 
 function expToolchain() {
-    export CC="${ARMT}clang -Wno-error -Wno-implicit-function-declaration"
-    export CXX="${ARMT}clang++ -Wno-error -Wno-implicit-function-declaration"
-    export CPP="${ARMT}clang -E"
+    export CC="${ARMT}gcc -Wno-error -Wno-implicit-function-declaration"
+    export CXX="${ARMT}g++ -Wno-error -Wno-implicit-function-declaration"
+    export CPP="${ARMT}cpp -E"
 #    export CFLAGS="-Wno-error"
 #    export CXXFLAGS="-Wno-error"
     export LD=${ARMT}ld
@@ -75,7 +76,7 @@ function expToolchain() {
     #export FC=${ARMT}gfortran
     export RANLIB=${ARMT}ranlib
     export AS=${ARMT}as
-    export PODHOST=arm-oe-linux-gnueabi
+    export PODHOST=arm-linux-gnueabi 
     export CROSS_TRIPLE=${PODHOST}
     export CROSS_COMPILE=${ARMT}
     export GOARCH=arm
