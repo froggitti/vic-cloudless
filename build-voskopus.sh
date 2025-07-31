@@ -68,7 +68,7 @@ function prepareVOSKbuild_ARMARM64() {
 function expToolchain() {
     export CC="${ARMT}gcc -Wno-error -Wno-implicit-function-declaration"
     export CXX="${ARMT}g++ -Wno-error -Wno-implicit-function-declaration"
-    export CPP="${ARMT}cpp -E"
+    export CPP="${ARMT}cpp"
 #    export CFLAGS="-Wno-error"
 #    export CXXFLAGS="-Wno-error"
     export LD=${ARMT}ld
