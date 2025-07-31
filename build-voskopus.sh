@@ -6,7 +6,7 @@ cd voskopus
 ORIGPATH="$(pwd)"
 
 #ARMT="$(pwd)/vic-toolchain/arm-linux-gnueabi/bin/arm-linux-gnueabi-"
-ARMT="$HOME/.anki/vicos-sdk/dist/1.1.0-r04/prebuilt/bin/arm-oe-linux-gnueabi-"
+ARMT="$HOME/.anki/vicos-sdk/dist/vic-toolchain/prebuilt/bin/arm-oe-linux-gnueabi-"
 
 #if [[ ! -f vic-toolchain ]]; then
 #    git clone https://github.com/kercre123/vic-toolchain --depth=1
